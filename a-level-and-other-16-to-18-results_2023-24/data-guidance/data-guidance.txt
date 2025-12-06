@@ -1,0 +1,65 @@
+A level and other 16 to 18 results
+Academic year 2023/24
+
+Description
+
+This document describes the data included in the ‘A level and other 16 to 18 results: 2023/24’ accredited official statistics release underlying data files.  The statistical publication complements the 16-18 school and college performance tables. This data is released under the terms of the Open Government License (opens in a new tab) (http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/) and is intended to meet at least 3 stars for Open Data (opens in a new tab) (https://www.gov.uk/government/publications/2010-to-2015-government-policy-government-transparency-and-accountability/2010-to-2015-government-policy-government-transparency-and-accountability#appendix-3-releasing-data-in-open-and-anonymised-formats).
+
+The publication methodology, available on the publication report, should be referenced alongside this data. It provides information on the data sources, their coverage and quality as well as explaining methodology used in producing the data.
+
+Coverage
+
+This release provides information on A level and other 16-18 results in:
+
+- Students who have completed their 16-18 phase of education
+- Students who have entered an approved qualification in the reporting year
+
+Approved qualifications are those that are eligible for reporting in the 16-18 school and college performance tables, listed in the 16 to 18 qualifications, discount codes and point scores (opens in a new tab) (https://www.gov.uk/government/publications/16-to-19-qualifications-discount-codes-and-point-scores).
+
+The information is based on data collected via awarding organisations, the school census, and the Individualised Learner Record.
+
+File formats and conventions
+
+Rounding
+
+This dataset has not had rounding applied.
+
+Suppression is applied to protect the disclosure of personal information or characteristics.
+
+Conventions
+
+The following conventions are used throughout the underlying data.
+
+Symbol  |  Useage                                      |  Example
+------  |  ------------------------------------------  |  ----------------------------------------------------------
+z       |  When an observation is not applicable       |  No data for males at an all female school
+x       |  When data is unavailable for other reasons  |  Data for an indicator is not collected in a certain region
+c       |  Confidential data                           |  Data has been suppressed
+
+Data files
+
+Retention - student characteristics
+
+Filename: retention_by_characteristic_202024.csv
+Geographic levels: National
+Time period: 2019/20 to 2023/24
+Content summary: Retention metrics by student characteristic. Student characteristics include sex, ethnicity, disadvantage status, free school meal provision, first language, special educational needs (SEN) provision, and KS4 prior attainment.
+
+Variable names and descriptions for this file are provided below:
+
+Variable name               |  Variable description
+--------------------------  |  -----------------------------------------
+characteristic_value        |  Characteristic
+exam_cohort                 |  Cohort
+perc_retained               |  % retained
+perc_retained_and_assessed  |  % retained and assessed
+perc_returned_and_retained  |  % returned and retained for a second year
+student_count_year_1        |  Number of students
+student_count_year_2        |  Number of students in two-year programme
+
+Footnotes:
+
+1. Figures for the total number of students may not match the sum of females and males, as not all institutions recorded the sex for every student.
+2. Disadvantage status is as reported at the end of key stage 4. Analysis involving disadvantage status includes students at state-funded schools and colleges only.
+3. EHC plans and statements of SEN are legal documents which detail the needs of the individual student, and the assistance they are to receive.
+4. A change to the trigger rules was introduced in 2020/21 such that students were no longer automatically reported after two years in 16-18 study. The introduction caused a fall in cohort size, particularly within the vocational and technical cohorts. A full impact analysis can be found in the methodology document (https://explore-education-statistics.service.gov.uk/methodology/a-level-and-other-16-to-18-results).
