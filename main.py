@@ -122,17 +122,22 @@ class StudentAnalyzerApp(QMainWindow):
         """)
         analyze_btn.clicked.connect(self.analyze_student)
         
-        save_btn = QPushButton("Сохранить результаты")
-        save_btn.setStyleSheet("""
+        button_layout.addWidget(analyze_btn)
+        button_layout.addWidget(save_btn)
+        left_layout.addLayout(button_layout)
+        
+        # Групповой анализ
+        group_btn = QPushButton("Анализ группы (5 студентов)")
+        group_btn.setStyleSheet("""
             QPushButton {
-                background-color: #2196F3;
+                background-color: #9C27B0;
                 color: white;
                 padding: 10px;
                 border-radius: 5px;
                 font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #0b7dda;
+                background-color: #7B1FA2;
             }
         """)
         save_btn.clicked.connect(self.save_results)
