@@ -211,8 +211,8 @@ class StudentAnalyzerApp(QMainWindow):
         
     def load_model(self):
         try:
-            self.model = StudentVAE(input_dim=7, hidden_dim=16, latent_dim=1)
-            checkpoint = torch.load('student_retention_vae_best.pth', map_location='cpu')
+            self.model = StudentVAE(input_dim=9, hidden_dim=16, latent_dim=1)  # Исправлено: input_dim=9
+            checkpoint = torch.load('student_model_vae_best.pth', map_location='cpu')
             self.model.load_state_dict(checkpoint['model_state_dict'])
             self.model.eval()
             self.status_label.setText("Модель загружена успешно")
