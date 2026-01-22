@@ -175,11 +175,8 @@ class StudentAnalyzerApp(QMainWindow):
         group_btn.clicked.connect(self.analyze_group)
         left_layout.addWidget(group_btn)
         
-        # Статус
-        self.status_label = QLabel("Анализ")
-        self.status_label.setAlignment(Qt.AlignCenter)
-        self.status_label.setStyleSheet("color: #666; padding: 10px;")
-        left_layout.addWidget(self.status_label)
+        main_layout.addWidget(left_panel)
+        main_layout.addWidget(right_panel)
         
         # Правая панель
         right_panel = QFrame()
