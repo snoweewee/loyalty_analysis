@@ -2,9 +2,9 @@ import sys
 import os
 import torch
 import numpy as np
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
+from PyQt6.QtWidgets import *
+from PyQt6.QtCore import *
+from PyQt6.QtGui import *
 
 # Импорт VAE
 class StudentVAE(torch.nn.Module):
