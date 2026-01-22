@@ -140,26 +140,38 @@ class StudentAnalyzerApp(QMainWindow):
                 background-color: #7B1FA2;
             }
         """)
-        save_btn.clicked.connect(self.save_results)
+        group_btn.clicked.connect(self.analyze_group)
+        left_layout.addWidget(group_btn)
         
-        button_layout.addWidget(analyze_btn)
-        button_layout.addWidget(save_btn)
-        left_layout.addLayout(button_layout)
+        # Статус
+        self.status_label = QLabel("Анализ")
+        self.status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.status_label.setStyleSheet("color: #666; padding: 10px;")
+        left_layout.addWidget(self.status_label)
         
-        # Групповой анализ
-        group_btn = QPushButton("Анализ группы (5 студентов)")
-        group_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #9C27B0;
-                color: white;
+        # Правая панель
+        right_panel = QFrame()
+        right_panel.setFrameStyle(QFrame.Shape.StyledPanel | QFrame.Shadow.Raised)
+        right_layout = QVBoxLayout(right_panel)
+        
+        result_title = QLabel("Результаты анализа")
+        result_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        result_title.setStyleSheet("font-size: 16px; font-weight: bold; margin: 10px;")
+        right_layout.addWidget(result_title)
+        
+        # Текстовое поле для результатов
+        self.result_text = QTextEdit()
+        self.result_text.setReadOnly(True)
+        self.result_text.setStyleSheet("""
+            QTextEdit {
+                background-color: #f5f5f5;
+                border: 1px solid #ddd;
                 padding: 10px;
-                border-radius: 5px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #7B1FA2;
+                font-family: Consolas, Monaco, monospace;
+                font-size: 11px;
             }
         """)
+        right_layout.addWidget(self.result_text)
         group_btn.clicked.connect(self.analyze_group)
         left_layout.addWidget(group_btn)
         
