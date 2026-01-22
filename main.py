@@ -59,13 +59,13 @@ class StudentAnalyzerApp(QMainWindow):
         
         # Левая панель
         left_panel = QFrame()
-        left_panel.setFrameStyle(QFrame.StyledPanel | QFrame.Raised)
+        left_panel.setFrameStyle(QFrame.Shape.StyledPanel | QFrame.Shadow.Raised)
         left_panel.setFixedWidth(400)
         left_layout = QVBoxLayout(left_panel)
         
         # Заголовок
         title_label = QLabel("Ввод данных студента")
-        title_label.setAlignment(Qt.AlignCenter)
+        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_label.setStyleSheet("font-size: 16px; font-weight: bold; margin: 10px;")
         left_layout.addWidget(title_label)
         
