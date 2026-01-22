@@ -69,7 +69,7 @@ class StudentAnalyzerApp(QMainWindow):
         title_label.setStyleSheet("font-size: 16px; font-weight: bold; margin: 10px;")
         left_layout.addWidget(title_label)
         
-         # Поля ввода (от 1 до 5)
+        # Поля ввода (от 1 до 5)
         self.feature_inputs = []
         feature_descriptions = [
             "Активность на платформе (1-5)",
@@ -122,6 +122,21 @@ class StudentAnalyzerApp(QMainWindow):
         """)
         analyze_btn.clicked.connect(self.analyze_student)
         
+        save_btn = QPushButton("Сохранить результаты")
+        save_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #2196F3;
+                color: white;
+                padding: 10px;
+                border-radius: 5px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #0b7dda;
+            }
+        """)
+        save_btn.clicked.connect(self.save_results)
+        
         button_layout.addWidget(analyze_btn)
         button_layout.addWidget(save_btn)
         left_layout.addLayout(button_layout)
@@ -172,35 +187,6 @@ class StudentAnalyzerApp(QMainWindow):
             }
         """)
         right_layout.addWidget(self.result_text)
-        group_btn.clicked.connect(self.analyze_group)
-        left_layout.addWidget(group_btn)
-        
-        main_layout.addWidget(left_panel)
-        main_layout.addWidget(right_panel)
-        
-        # Правая панель
-        right_panel = QFrame()
-        right_panel.setFrameStyle(QFrame.StyledPanel | QFrame.Raised)
-        right_layout = QVBoxLayout(right_panel)
-        
-        result_title = QLabel("Результаты анализа")
-        result_title.setAlignment(Qt.AlignCenter)
-        result_title.setStyleSheet("font-size: 16px; font-weight: bold; margin: 10px;")
-        right_layout.addWidget(result_title)
-        
-        # Текстовое поле для результатов
-        self.result_text = QTextEdit()
-        self.result_text.setReadOnly(True)
-        self.result_text.setStyleSheet("""
-            QTextEdit {
-                background-color: #f5f5f5;
-                border: 1px solid #ddd;
-                padding: 10px;
-                font-family: Consolas, Monaco, monospace;
-                font-size: 11px;
-            }
-        """)
-        right_layout.addWidget(self.result_text)
         
         # Добавляем панели в главный layout
         main_layout.addWidget(left_panel)
@@ -233,26 +219,31 @@ class StudentAnalyzerApp(QMainWindow):
         
         full_features = np.concatenate([main_features, [enrollment_change, assessment_rate]])
         return np.array(full_features, dtype=np.float32)
-        return np.array(features, dtype=np.float32)
     
     def analyze_student_profile(self, student_data):
-        avg_score = np.mean(student_data)
-        min_score = np.min(student_data)
-        weak_features = np.sum(student_data < -1.0)
-        strong_features = np.sum(student_data > 1.0)
+        # Работаем только с первыми 7 признаками
+        if len(student_data) > 7:
+            main_data = student_data[:7]
+        else:
+            main_data = student_data
+            
+        avg_score = np.mean(main_data)
+        min_score = np.min(main_data)
+        weak_features = np.sum(main_data < 2.0)  # Слабые признаки < 2.0
+        strong_features = np.sum(main_data > 4.0)  # Сильные признаки > 4.0
         
         if weak_features >= 4:
             return "Критический"
-        elif avg_score < -0.8:
+        elif avg_score < 2.0:
             return "Низкий"
-        elif avg_score < -0.3:
+        elif avg_score < 2.7:
             return "Ниже среднего"
-        elif avg_score < 0.3:
+        elif avg_score < 3.3:
             return "Средний"
-        elif avg_score < 0.8:
+        elif avg_score < 4.0:
             return "Выше среднего"
         else:
-            return "Высокий"
+            return "высокий"
     
     def predict_student_segment(self, student_data, student_name):
         if self.model is None:
@@ -260,17 +251,35 @@ class StudentAnalyzerApp(QMainWindow):
         
         self.model.eval()
         with torch.no_grad():
-            student_tensor = torch.FloatTensor(student_data).unsqueeze(0)
+            # Нормализация данных для VAE
+            if len(student_data) != 9:
+                raise ValueError(f"Ожидалось 9 признаков, получено: {len(student_data)}")
+            
+            # Первые 7 признаков: гипотетические метрики (1-5) в [-1.6, +1.6]
+            normalized_main = (student_data[:7] - 3.0) * 0.8
+            
+            # Последние 2 признака: enrollment_change и assessment_rate
+            normalized_enrollment = (student_data[7] - 1.0) / 0.5
+            normalized_assessment = (student_data[8] - 0.5) / 0.5
+            
+            normalized_data = np.concatenate([normalized_main, [normalized_enrollment, normalized_assessment]])
+            
+            student_tensor = torch.FloatTensor(normalized_data).unsqueeze(0)
             recon, mu, logvar = self.model(student_tensor)
             latent_value = mu.item()
             
-            # Анализ профиля
-            avg_score = np.mean(student_data)
-            weak_features = np.sum(student_data < -1.0)
-            min_score = np.min(student_data)
-            strong_features = np.sum(student_data > 1.0)
+            # Анализ профиля (только по первым 7 признакам)
+            if len(student_data) > 7:
+                main_data = student_data[:7]
+            else:
+                main_data = student_data
+                
+            avg_score = np.mean(main_data)
+            weak_features = np.sum(main_data < 2.0)
+            min_score = np.min(main_data)
+            strong_features = np.sum(main_data > 4.0)
             
-            if weak_features >= 4 or min_score < -1.5:
+            if weak_features >= 4 or min_score < 1.5:
                 cluster = 0
                 segment_name = "Проблемные студенты"
                 risk_level = "Высокий риск"
@@ -282,7 +291,7 @@ class StudentAnalyzerApp(QMainWindow):
                     "- Повышенное внимание куратора",
                     "- Специальные мотивационные программы"
                 ]
-            elif avg_score < -0.5:
+            elif avg_score < 2.5:
                 cluster = 3  
                 segment_name = "Рискованные студенты"
                 risk_level = "Средний риск"
@@ -294,7 +303,7 @@ class StudentAnalyzerApp(QMainWindow):
                     "- Дополнительные учебные материалы",
                     "- Мотивационные рассылки"
                 ]
-            elif avg_score > 0.8 and strong_features >= 3 and min_score > -0.3:
+            elif avg_score > 4.0 and strong_features >= 3 and min_score > 2.0:
                 cluster = 2
                 segment_name = "Перспективные студенты" 
                 risk_level = "Очень низкий риск"
@@ -324,7 +333,7 @@ class StudentAnalyzerApp(QMainWindow):
             predicted_loyalty = max(75, min(98, base_loyalty + loyalty_adjustment))
             
             # Анализ признаков
-            feature_analysis = self.analyze_features_detailed(student_data)
+            feature_analysis = self.analyze_features_detailed(main_data)
             
             result = {
                 'student_name': student_name,
@@ -346,7 +355,7 @@ class StudentAnalyzerApp(QMainWindow):
             return result
     
     def analyze_features_detailed(self, student_data):
-        """Детальный анализ признаков"""
+        """Детальный анализ признаков (пятибалльная система)"""
         feature_names = [
             "Активность на платформе",
             "Успеваемость",
@@ -367,16 +376,16 @@ class StudentAnalyzerApp(QMainWindow):
         for i, value in enumerate(student_data):
             feature_name = feature_names[i]
             
-            if value > 1.0:
-                analysis['strengths'].append(f"{feature_name}: {value:.2f} (сильно выше среднего)")
-            elif value > 0.5:
-                analysis['strengths'].append(f"{feature_name}: {value:.2f} (выше среднего)")
-            elif value < -1.0:
-                analysis['weaknesses'].append(f"{feature_name}: {value:.2f} (критически низкий)")
-            elif value < -0.5:
-                analysis['weaknesses'].append(f"{feature_name}: {value:.2f} (ниже среднего)")
+            if value > 4.0:
+                analysis['strengths'].append(f"{feature_name}: {value:.1f} (отлично)")
+            elif value > 3.5:
+                analysis['strengths'].append(f"{feature_name}: {value:.1f} (хорошо)")
+            elif value < 2.0:
+                analysis['weaknesses'].append(f"{feature_name}: {value:.1f} (критически низкий)")
+            elif value < 2.5:
+                analysis['weaknesses'].append(f"{feature_name}: {value:.1f} (ниже среднего)")
             else:
-                analysis['neutral'].append(f"{feature_name}: {value:.2f} (в норме)")
+                analysis['neutral'].append(f"{feature_name}: {value:.1f} (удовлетворительно)")
         
         # Рекомендации
         if len(analysis['weaknesses']) >= 3:
@@ -403,20 +412,22 @@ class StudentAnalyzerApp(QMainWindow):
             self.status_label.setStyleSheet("color: #4CAF50; padding: 10px;")
     
     def analyze_group(self):
-        # Создаем тестовых студентов для теста группы
+        # Создаем тестовых студентов для теста группы (в пятибалльной системе)
         test_students = [
-            ([-1.8, -2.0, -1.5, -1.2, -0.8, -1.0, -0.5], "Алексей Петров (проблемный)"),
-            ([0.3, 0.5, 0.2, 0.1, 0.4, 0.3, 0.6], "Мария Сидорова (стандартная)"),
-            ([1.8, 2.1, 1.5, 1.2, 1.4, 2.0, 1.3], "Дмитрий Иванов (перспективный)"),
-            ([-1.2, 0.7, -0.9, -0.7, 0.2, -0.6, -0.8], "Анна Козлова (рискованная)"),
-            ([0.8, 1.2, 0.9, 0.6, 0.7, 1.1, 1.0], "Елена Смирнова (стабильная)")
+            ([1.2, 1.0, 1.5, 1.8, 2.2, 2.0, 2.5], "Алексей Петров (проблемный)"),
+            ([3.3, 3.5, 3.2, 3.1, 3.4, 3.3, 3.6], "Мария Сидорова (обычная)"),
+            ([4.8, 5.0, 4.5, 4.2, 4.4, 5.0, 4.3], "Дмитрий Иванов (перспективный)"),
+            ([1.8, 3.7, 2.1, 2.3, 3.2, 2.4, 2.2], "Анна Козлова (рискованная)"),
+            ([3.8, 3.9, 3.7, 3.6, 3.5, 3.8, 4.1], "Елена Смирнова (стабильная)")
         ]
         
         group_results = []
         result_text = "="*60 + "\nАнализ группы студентов\n" + "="*60 + "\n\n"
         
         for student_data, student_name in test_students:
-            result = self.predict_student_segment(np.array(student_data), student_name)
+            # Дополняем до 9 признаков
+            full_student_data = np.concatenate([student_data, [1.0, 0.8]])
+            result = self.predict_student_segment(full_student_data, student_name)
             if result:
                 group_results.append(result)
                 result_text += self.format_result_text(result)
@@ -445,7 +456,7 @@ class StudentAnalyzerApp(QMainWindow):
         text += f"{result['description']}\n\n"
         
         text += f"Общий профиль: {result['profile']}\n"
-        text += f"Средний балл: {result['avg_score']:.2f}\n"
+        text += f"Средний балл: {result['avg_score']:.1f}\n"
         text += f"Сильных сторон: {result['strong_features']}\n"
         text += f"Слабых сторон: {result['weak_features']}\n\n"
         
@@ -470,7 +481,7 @@ class StudentAnalyzerApp(QMainWindow):
             text += "\n"
         
         if analysis['neutral']:
-            text += "Нормальные показатели:\n"
+            text += "Удовлетворительные показатели:\n"
             for neutral in analysis['neutral']:
                 text += f" - {neutral}\n"
             text += "\n"
@@ -569,25 +580,25 @@ def main():
     app.setStyle('Fusion')  
     
     palette = QPalette()
-    palette.setColor(QPalette.Window, QColor(240, 240, 240))
-    palette.setColor(QPalette.WindowText, QColor(0, 0, 0))
-    palette.setColor(QPalette.Base, QColor(255, 255, 255))
-    palette.setColor(QPalette.AlternateBase, QColor(245, 245, 245))
-    palette.setColor(QPalette.ToolTipBase, QColor(255, 255, 220))
-    palette.setColor(QPalette.ToolTipText, QColor(0, 0, 0))
-    palette.setColor(QPalette.Text, QColor(0, 0, 0))
-    palette.setColor(QPalette.Button, QColor(240, 240, 240))
-    palette.setColor(QPalette.ButtonText, QColor(0, 0, 0))
-    palette.setColor(QPalette.BrightText, QColor(255, 0, 0))
-    palette.setColor(QPalette.Link, QColor(42, 130, 218))
-    palette.setColor(QPalette.Highlight, QColor(42, 130, 218))
-    palette.setColor(QPalette.HighlightedText, QColor(255, 255, 255))
+    palette.setColor(QPalette.ColorRole.Window, QColor(240, 240, 240))
+    palette.setColor(QPalette.ColorRole.WindowText, QColor(0, 0, 0))
+    palette.setColor(QPalette.ColorRole.Base, QColor(255, 255, 255))
+    palette.setColor(QPalette.ColorRole.AlternateBase, QColor(245, 245, 245))
+    palette.setColor(QPalette.ColorRole.ToolTipBase, QColor(255, 255, 220))
+    palette.setColor(QPalette.ColorRole.ToolTipText, QColor(0, 0, 0))
+    palette.setColor(QPalette.ColorRole.Text, QColor(0, 0, 0))
+    palette.setColor(QPalette.ColorRole.Button, QColor(240, 240, 240))
+    palette.setColor(QPalette.ColorRole.ButtonText, QColor(0, 0, 0))
+    palette.setColor(QPalette.ColorRole.BrightText, QColor(255, 0, 0))
+    palette.setColor(QPalette.ColorRole.Link, QColor(42, 130, 218))
+    palette.setColor(QPalette.ColorRole.Highlight, QColor(42, 130, 218))
+    palette.setColor(QPalette.ColorRole.HighlightedText, QColor(255, 255, 255))
     app.setPalette(palette)
     
     window = StudentAnalyzerApp()
     window.show()
     
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 
 if __name__ == '__main__':
     main()
