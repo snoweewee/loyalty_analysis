@@ -222,9 +222,17 @@ class StudentAnalyzerApp(QMainWindow):
             self.status_label.setStyleSheet("color: #f44336; padding: 10px;")
     
     def create_student_from_inputs(self):
-        features = []
+        # Получаем 7 основных признаков от пользователя
+        main_features = []
         for spinbox in self.feature_inputs:
-            features.append(spinbox.value())
+            main_features.append(spinbox.value())
+        
+        # Дополняем до 9 признаков
+        enrollment_change = 1.0  # Среднее изменение набора
+        assessment_rate = 0.8   # Средняя доля оцененных работ
+        
+        full_features = np.concatenate([main_features, [enrollment_change, assessment_rate]])
+        return np.array(full_features, dtype=np.float32)
         return np.array(features, dtype=np.float32)
     
     def analyze_student_profile(self, student_data):
