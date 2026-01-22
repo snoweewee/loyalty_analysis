@@ -87,10 +87,10 @@ class StudentAnalyzerApp(QMainWindow):
             left_layout.addWidget(label)
             
             spinbox = QDoubleSpinBox()
-            spinbox.setRange(-3.0, 3.0)
+            spinbox.setRange(1.0, 5.0)
             spinbox.setSingleStep(0.1)
             spinbox.setDecimals(1)
-            spinbox.setValue(0.0)
+            spinbox.setValue(3.0)  # Среднее значение по умолчанию
             spinbox.setStyleSheet("padding: 5px;")
             left_layout.addWidget(spinbox)
             self.feature_inputs.append(spinbox)
